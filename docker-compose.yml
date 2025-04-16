@@ -1,0 +1,60 @@
+services:
+  db:
+    build:
+      context: ./docker/db
+      dockerfile: Dockerfile
+    container_name: postgres_pgvector
+    restart: always
+    environment:
+      POSTGRES_USER: diplom
+      POSTGRES_PASSWORD: diplom
+      POSTGRES_DB: diplombd
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./back
+    container_name: django_app
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn back.wsgi:application --bind 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./back/.env
+    depends_on:
+      - db
+    volumes:
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./front
+    container_name: vue_app
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    volumes:
+      - static_data:/usr/share/nginx/html/django_static
+      - media_data:/usr/share/nginx/html/media
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:
+
+networks:
+  app-network:
+    driver: bridge
