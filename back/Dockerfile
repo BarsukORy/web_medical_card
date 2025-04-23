@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libatlas-base-dev \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем requirements.txt и устанавливаем зависимости
@@ -27,6 +28,9 @@ RUN pip install --upgrade pip && \
 
 # Копируем оставшийся проект
 COPY . .
+
+RUN python manage.py migrate || true
+RUN python manage.py collectstatic --noinput
 
 # Указываем команду по умолчанию
 CMD ["gunicorn", "back.wsgi:application", "--bind", "0.0.0.0:8000"]

@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: diplom-app
-    env: docker
-    plan: free
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
-    autoDeploy: true

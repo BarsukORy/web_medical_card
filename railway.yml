@@ -1,0 +1,61 @@
+services:
+  db:
+    build:
+      context: ./docker/db
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: diplom
+      POSTGRES_PASSWORD: diplom
+      POSTGRES_DB: diplombd
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    environment:
+      SECRET_KEY: django-insecure-jlxn)av_+#-v#7qy_$ozwfv6di*9j3ju+#o8s230h_qv=gpe=a
+      DEBUG: "False"
+      ALLOWED_HOSTS: localhost,127.0.0.1,diplom-backend.railway.app
+      CORS_ALLOWED_ORIGINS: http://localhost:8000,http://localhost:5173,https://diplom-frontend.railway.app
+      DB_NAME: diplombd
+      DB_USER: diplom
+      DB_PASSWORD: diplom
+      DB_HOST: db
+      DB_PORT: 5432
+      LANGUAGE_CODE: en-us
+      TIME_ZONE: Europe/Moscow
+      STATIC_URL: /static/
+      STATIC_ROOT: /app/staticfiles
+      MEDIA_URL: /media/
+      MEDIA_ROOT: /app/media/
+      LOG_LEVEL: DEBUG
+    ports:
+      - "8000:8000"
+    volumes:
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_URL: https://diplom-backend.railway.app
+    ports:
+      - "80:80"
+    volumes:
+      - static_data:/usr/share/nginx/html/django_static
+      - media_data:/usr/share/nginx/html/media
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:
