@@ -253,7 +253,7 @@
             <div v-if="selectedEntry">
               <div class="files-section">
                 <h4>Файлы</h4>
-                <div v-if="localErrors.uploadFile" class="error">{{ localErrors.uploadFile }}</div>
+<!--                <div v-if="localErrors.uploadFile" class="error">{{ localErrors.uploadFile }}</div>-->
                 <div v-if="selectedEntry.files?.length">
                   <div v-for="file in selectedEntry.files" :key="file.id" class="file-item">
                     <a :href="file.file" target="_blank">{{ file.file_name }}</a>
@@ -490,6 +490,7 @@ export default {
     });
     const editingMedication = ref({});
     const selectedFile = ref(null);
+    const fileInput = ref(null);
 
     const currentPage = ref(1);
     const totalPages = computed(() => {
@@ -667,7 +668,7 @@ export default {
         }
       } catch (err) {
         if (await handleAuthError(err)) return;
-        globalError.value = err.response?.data?.detail || 'Ошибка загрузки записей';
+        globalError.value = err.response?.data?.detail;
       } finally {
         loading.value = false;
       }
@@ -756,7 +757,9 @@ export default {
         selectedEntry.value.files = response.data.results || response.data;
       } catch (err) {
         if (await handleAuthError(err)) return;
-        localErrors.uploadFile = 'Ошибка загрузки файлов';
+        if (!localErrors.uploadFile) {
+          localErrors.uploadFile = err.response?.data?.detail || 'Ошибка загрузки файлов';
+        }
       }
     };
 
@@ -766,17 +769,26 @@ export default {
 
     const uploadFile = async () => {
       if (!checkAuth()) return;
-      if (!selectedFile.value || !selectedEntry.value) return;
+      if (!selectedFile.value || !selectedEntry.value) {
+        localErrors.uploadFile = 'Файл или запись не выбраны';
+        return;
+      }
       loading.value = true;
       localErrors.uploadFile = '';
       try {
         const response = await uploadMedicalCardEntryFile(selectedEntry.value.id, selectedFile.value);
-        selectedEntry.value.files.push(response.data);
-        selectedFile.value = null;
-        if (this.$refs.fileInput) this.$refs.fileInput.value = '';
+        if (response.status === 201 || response.status === 200) {
+          selectedEntry.value.files.push(response.data);
+          selectedFile.value = null;
+          if (fileInput.value) fileInput.value.value = '';
+          await fetchEntryFiles(selectedEntry.value.id);
+        } else {
+          throw new Error(`Неожиданный статус ответа: ${response.status}`);
+        }
       } catch (err) {
+        console.error('Ошибка при загрузке файла:', err);
         if (await handleAuthError(err)) return;
-        localErrors.uploadFile = err.response?.data?.detail || 'Ошибка загрузки файла';
+        localErrors.uploadFile = err.response?.data?.detail;
       } finally {
         loading.value = false;
       }
@@ -961,6 +973,7 @@ export default {
       totalPages,
       fetchEntries,
       MedicalCardEntryPagination,
+      fileInput,
     };
   },
 };
@@ -1323,6 +1336,7 @@ h5 {
   align-items: center;
   gap: 10px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .file-upload input[type="file"] {
@@ -1331,6 +1345,10 @@ h5 {
   border-radius: 6px;
   font-size: 14px;
   flex: 1;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .medical-card-detail-container .file-upload button {
@@ -1343,6 +1361,7 @@ h5 {
   font-weight: bold;
   cursor: pointer;
   transition: background 0.3s ease;
+  flex-shrink: 0;
 }
 
 .medical-card-detail-container .file-upload button:hover {
@@ -1360,6 +1379,25 @@ h5 {
 .prescription-item {
   border-bottom: 1px solid #ccc;
   padding: 10px 0;
+}
+
+.prescription-item button {
+  padding: 8px 16px;
+  background-color: var(--primary-color, #000);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  width: 180px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.prescription-item button:hover {
+  background-color: var(--hover-color, #333);
 }
 
 .medications-list {

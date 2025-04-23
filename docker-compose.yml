@@ -19,7 +19,8 @@ services:
   backend:
     build:
       context: ./back
-    container_name: django_app
+    container_name: back
+    restart: always
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
@@ -39,7 +40,8 @@ services:
   frontend:
     build:
       context: ./front
-    container_name: vue_app
+    container_name: front
+    restart: always
     ports:
       - "80:80"
     depends_on:
