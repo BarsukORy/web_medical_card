@@ -3,6 +3,7 @@ services:
     build:
       context: ./docker/db
       dockerfile: Dockerfile
+    nixpacksPlan: {}
     environment:
       POSTGRES_USER: diplom
       POSTGRES_PASSWORD: diplom
@@ -16,6 +17,7 @@ services:
     build:
       context: ./back
       dockerfile: Dockerfile
+    nixpacksPlan: {}
     environment:
       SECRET_KEY: django-insecure-jlxn)av_+#-v#7qy_$ozwfv6di*9j3ju+#o8s230h_qv=gpe=a
       DEBUG: "False"
@@ -45,6 +47,7 @@ services:
     build:
       context: ./front
       dockerfile: Dockerfile
+    nixpacksPlan: {}
     environment:
       VITE_API_URL: https://diplom-backend.railway.app
     ports:
