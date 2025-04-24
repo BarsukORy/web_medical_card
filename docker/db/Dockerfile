@@ -1,14 +1,11 @@
 # Используем базовый образ PostgreSQL 16
 FROM postgres:16
 
-# Отключаем проверку подписей (временное решение)
-RUN echo "Acquire::AllowInsecureRepositories \"true\";" > /etc/apt/apt.conf.d/90insecure
-
-# Добавляем репозиторий PostgreSQL (используем HTTP вместо HTTPS)
+# Добавляем репозиторий PostgreSQL
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 
-# Устанавливаем необходимые инструменты и расширение pgvector
-RUN apt-get update && apt-get install -y \
+# Устанавливаем необходимые инструменты и расширение pgvector с флагом --allow-unauthenticated
+RUN apt-get update && apt-get install -y --allow-unauthenticated \
     postgresql-server-dev-16 \
     gcc \
     make \
