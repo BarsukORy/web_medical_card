@@ -1,17 +1,38 @@
 # Используем базовый образ PostgreSQL 16
 FROM postgres:16
 
+# Установка зависимостей для работы с GPG-ключами
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Обновляем GPG-ключи для Debian
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6A7557762E7E2E4A
+
+# Добавляем GPG-ключ для репозитория PostgreSQL и используем HTTPS
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+RUN echo "deb https://ftp.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+
 # Устанавливаем необходимые инструменты и расширение pgvector
 RUN apt-get update && apt-get install -y \
     postgresql-server-dev-16 \
     gcc \
     make \
-    git && \
-    git clone https://github.com/pgvector/pgvector.git && \
-    cd pgvector && \
-    make && make install && \
-    cd .. && rm -rf pgvector && \
-    apt-get remove -y gcc make git && apt-get autoremove -y && apt-get clean
+    git \
+    && git clone https://github.com/pgvector/pgvector.git \
+    && cd pgvector \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf pgvector \
+    && apt-get remove -y gcc make git \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
+# Инициализация расширений
 RUN echo "CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;" > /docker-entrypoint-initdb.d/init.sql && \
     echo "CREATE EXTENSION IF NOT EXISTS vector SCHEMA public;" >> /docker-entrypoint-initdb.d/init.sql
