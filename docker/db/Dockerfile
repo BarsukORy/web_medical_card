@@ -1,8 +1,8 @@
 # Используем базовый образ PostgreSQL 16
 FROM postgres:16
 
-# Установка зависимостей для работы с GPG-ключами
-RUN apt-get update && apt-get install -y \
+# Устанавливаем curl и gnupg без выполнения apt-get update
+RUN apt-get install -y --no-install-recommends \
     curl \
     gnupg \
     && rm -rf /var/lib/apt/lists/*
