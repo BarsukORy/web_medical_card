@@ -28,7 +28,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 CSRF_TRUSTED_ORIGINS = [
     "https://85.192.31.82",
-    "http://85.192.31.82", 
+    "http://85.192.31.82",
 ]
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
@@ -103,6 +103,12 @@ CORS_ALLOW_ALL_ORIGINS = True
 #     default='http://localhost:8000,http://localhost:5173',
 #     cast=lambda v: [s.strip() for s in v.split(',')]
 # )
+
+# --------------------- HTTPS ------------------------------
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 
 # ----------------------------------------------------------
 
