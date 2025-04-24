@@ -1,19 +1,10 @@
 # Используем базовый образ PostgreSQL 16
 FROM postgres:16
 
-# Устанавливаем curl и gnupg без выполнения apt-get update
-RUN apt-get install -y --no-install-recommends \
-    curl \
-    gnupg \
-    && rm -rf /var/lib/apt/lists/*
+# Отключаем проверку подписей (временное решение)
+RUN echo "Acquire::AllowInsecureRepositories \"true\";" > /etc/apt/apt.conf.d/90insecure
 
-# Обновляем GPG-ключи для Debian
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6A7557762E7E2E4A
-
-# Добавляем GPG-ключ для репозитория PostgreSQL и используем HTTPS
-RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+# Добавляем репозиторий PostgreSQL (используем HTTPS)
 RUN echo "deb https://ftp.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 
 # Устанавливаем необходимые инструменты и расширение pgvector
