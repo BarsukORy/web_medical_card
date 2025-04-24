@@ -29,8 +29,5 @@ RUN pip install --upgrade pip && \
 # Копируем оставшийся проект
 COPY . .
 
-RUN python manage.py migrate || true
-RUN python manage.py collectstatic --noinput
-
 # Указываем команду по умолчанию
 CMD ["gunicorn", "back.wsgi:application", "--bind", "0.0.0.0:8000"]
